@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RosterTracker - Company Input</title>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/9352/9352254.png">
+    <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/9352/9352254.png">
+    <link rel="stylesheet" href="./src/design-system.css">
+    <style>
+        .notice {
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        .notice-success {
+            color: #16A34A;
+            background-color: #DCFCE7;
+            border: 1px solid #BBF7D0;
+        }
+        .notice-error {
+            color: #DC2626;
+            background-color: #FEF2F2;
+            border: 1px solid #FECACA;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <div class="main-content">
+            <div class="page-header">
+                <div class="page-header-left">
+                    <h1 class="page-title">Data Entry</h1>
+                    <p class="page-subtitle">TRC Applicant Flow</p>
+                </div>
+            </div>
+
+            <div class="card" style="max-width: 560px;">
+                <!-- Message container for success/error feedback -->
+                <div id="form-message"></div>
+
+                <form id="company-data-form">
+                    <div class="form-group">
+                        <label class="form-label" for="display_week">Current Week</label>
+                        <span id="display_week" style="font-weight:700;font-size:1.125rem;color:var(--primary);">--</span>
+                        <input type="hidden" id="calculated_week" name="week" value="">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="date">Friday Date</label>
+                        <input class="form-input" type="date" id="date" name="date" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="open_order">Open Order #</label>
+                            <input class="form-input" type="number" id="open_order" name="open_order" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="scheduled">Scheduled #</label>
+                            <input class="form-input" type="number" id="scheduled" name="scheduled" placeholder="0">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="interviewed">Interviewed #</label>
+                            <input class="form-input" type="number" id="interviewed" name="interviewed" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="accepted">Accepted #</label>
+                            <input class="form-input" type="number" id="accepted" name="accepted" placeholder="0">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="rom">ROM #</label>
+                            <input class="form-input" type="number" id="rom" name="rom" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="car">CAR #</label>
+                            <input class="form-input" type="number" id="car" name="car" placeholder="0">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="aus">AUS #</label>
+                        <input class="form-input" type="number" id="aus" name="aus" placeholder="0">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="margin-top:8px;">Submit Data</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { checkAuth, checkPageAccess } from './src/auth.js';
+        import { initInactivityTimer } from './src/main.js';
+        import { renderNavbar } from './src/components/navbar.js';
+        import { renderSidebar } from './src/components/sidebar.js';
+
+        await checkAuth();
+        await checkPageAccess('company-input');
+        renderNavbar();
+        await renderSidebar();
+        initInactivityTimer();
+    </script>
+
+    <script type="module">
+        import { supabase } from './src/supabaseClient.js';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.getElementById('date');
+            const displayWeekSpan = document.getElementById('display_week');
+            const hiddenWeekInput = document.getElementById('calculated_week');
+
+            // Define the base date for week calculation in JavaScript
+            // Using 'T00:00:00' to ensure consistent time for calculation, avoiding timezone issues.
+            const BASE_DATE = new Date('2025-05-23T00:00:00');
+
+            /**
+             * Calculates the week number based on the selected date and a base date.
+             * Treats the BASE_DATE as Week 1.
+             */
+            function calculateWeek() {
+                const selectedDateStr = dateInput.value;
+
+                // If no date is selected, clear the display and hidden input
+                if (!selectedDateStr) {
+                    displayWeekSpan.textContent = '--';
+                    hiddenWeekInput.value = '';
+                    return;
+                }
+
+                // Create a Date object from the selected date string, again with T00:00:00
+                const selectedDate = new Date(selectedDateStr + 'T00:00:00');
+
+                // Calculate the difference in milliseconds between the selected date and the base date
+                const diffTime = selectedDate.getTime() - BASE_DATE.getTime();
+
+                // Convert the difference from milliseconds to days
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+                // Calculate the week number: (days / 7) + 1 (since base date is Week 1)
+                const weekNumber = Math.floor(diffDays / 7) + 1;
+
+                // Update the displayed week number
+                displayWeekSpan.textContent = weekNumber;
+                // Set the value of the hidden input field, which will be sent to the server
+                hiddenWeekInput.value = weekNumber;
+            }
+
+            // Attach the 'calculateWeek' function to the 'change' event of the date input
+            dateInput.addEventListener('change', calculateWeek);
+
+            // Call the function once on page load to pre-populate the week if a date is already present
+            calculateWeek();
+
+            // Form submission handler
+            const form = document.getElementById('company-data-form');
+            const messageContainer = document.getElementById('form-message');
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const formData = {
+                    company: 'TRC',
+                    week: hiddenWeekInput.value,
+                    date: dateInput.value,
+                    open_order: document.getElementById('open_order').value,
+                    scheduled: document.getElementById('scheduled').value,
+                    interviewed: document.getElementById('interviewed').value,
+                    accepted: document.getElementById('accepted').value,
+                    rom: document.getElementById('rom').value,
+                    car: document.getElementById('car').value,
+                    aus: document.getElementById('aus').value
+                };
+
+                if (!formData.date) {
+                    messageContainer.innerHTML = '<div class="notice notice-error">Please select a date.</div>';
+                    return;
+                }
+
+                try {
+                    const { data, error } = await supabase
+                        .from('company_data')
+                        .insert({
+                            company: formData.company,
+                            week: parseInt(formData.week),
+                            date: formData.date,
+                            open_order: parseInt(formData.open_order) || 0,
+                            scheduled: parseInt(formData.scheduled) || 0,
+                            interviewed: parseInt(formData.interviewed) || 0,
+                            accepted: parseInt(formData.accepted) || 0,
+                            rom: parseInt(formData.rom) || 0,
+                            car: parseInt(formData.car) || 0,
+                            aus: parseInt(formData.aus) || 0
+                        })
+                        .select();
+
+                    if (error) {
+                        console.error('Supabase insert error:', error);
+                        messageContainer.innerHTML = `<div class="notice notice-error">Error: ${error.message}</div>`;
+                        return;
+                    }
+
+                    messageContainer.innerHTML = `<div class="notice notice-success">Data submitted successfully for Week ${formData.week}!</div>`;
+                    form.reset();
+                    displayWeekSpan.textContent = '--';
+                    hiddenWeekInput.value = '';
+                } catch (err) {
+                    console.error('Submission error:', err);
+                    messageContainer.innerHTML = '<div class="notice notice-error">Error: Could not submit data. Please try again.</div>';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

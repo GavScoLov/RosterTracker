@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RosterTracker - Login</title>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/9352/9352254.png">
+    <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/9352/9352254.png">
+    <link rel="stylesheet" href="./src/design-system.css">
+</head>
+<body>
+    <div class="login-page">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="login-logo">RT</div>
+                <h1 class="login-title">RosterTracker</h1>
+                <p class="login-subtitle">Sign in to your account</p>
+            </div>
+            <div id="login-error" class="login-error" style="display:none;"></div>
+            <form class="login-form" id="login-form">
+                <div class="form-group">
+                    <label class="form-label" for="email">Email</label>
+                    <input class="form-input" type="email" id="email" name="email" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input class="form-input" type="password" id="password" name="password" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="btn btn-primary login-btn">Sign In</button>
+            </form>
+            <div class="login-divider">OR</div>
+            <button class="login-google" id="google-login-btn">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                Continue with Google
+            </button>
+        </div>
+    </div>
+    <script type="module">
+        import { login, loginWithGoogle, onAuthStateChange } from './src/auth.js';
+        import { supabase } from './src/supabaseClient.js';
+
+        // Redirect if already logged in
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            window.location.href = './dashboard.html';
+        }
+
+        // Auto-redirect on auth state change (e.g. after Google OAuth callback)
+        onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+                window.location.href = './dashboard.html';
+            }
+        });
+
+        // Login form handler
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorEl = document.getElementById('login-error');
+
+            try {
+                await login(email, password);
+                window.location.href = './dashboard.html';
+            } catch (err) {
+                errorEl.textContent = err.message || 'Invalid email or password.';
+                errorEl.style.display = 'block';
+            }
+        });
+
+        // Google OAuth login
+        document.getElementById('google-login-btn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                await loginWithGoogle();
+            } catch (err) {
+                const errorEl = document.getElementById('login-error');
+                errorEl.textContent = err.message || 'Google login failed.';
+                errorEl.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

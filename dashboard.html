@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RosterTracker - Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/9352/9352254.png">
+    <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/9352/9352254.png">
+    <link rel="stylesheet" href="./src/design-system.css">
+    <style>
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 325px 1fr 1fr 1fr 475px;
+            grid-template-rows: 1fr 1fr;
+            gap: 20px;
+        }
+        .card-mini-pie {
+            grid-row: 1 / 3;
+            grid-column: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+        .card-speedometer {
+            grid-row: 1;
+            grid-column: 2 / 4;
+            text-align: center;
+        }
+        .card-weekly {
+            grid-row: 2;
+            grid-column: 2 / 6;
+        }
+        .card-bonuses {
+            grid-row: 1;
+            grid-column: 5;
+        }
+        .card-distribution {
+            grid-row: 1;
+            grid-column: 4;
+            min-height: 0;
+        }
+        .pie-header {
+            font-size: 1.125rem;
+            font-weight: 700;
+            text-align: center;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        .overall-meter {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            height: calc(100% - 20px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .chart-wrapper h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        /* Bonuses Styling */
+        .bonus-psa, .bonus-trc {
+            margin-bottom: 10px;
+        }
+        .bonus-trc {
+            margin-bottom: 0;
+        }
+        .psa-header, .trc-header {
+            background-color: rgba(5, 150, 105, 0.8);
+            font-size: 2rem;
+            color: #fff;
+            padding: 10px 18px;
+            border-top-right-radius: var(--radius);
+            border-top-left-radius: var(--radius);
+            font-weight: 700;
+        }
+        .trc-header {
+            background-color: rgba(16, 185, 129, 0.8);
+        }
+        .psa-table, .trc-table {
+            background-color: rgba(5, 150, 105, 0.1);
+            padding: 8px;
+            display: grid;
+            grid-template-columns: 50px auto;
+            grid-template-rows: 1fr 1fr 1fr;
+            border-bottom-right-radius: var(--radius);
+            border-bottom-left-radius: var(--radius);
+        }
+        .trc-table {
+            grid-template-rows: 1fr;
+            background-color: rgba(16, 185, 129, 0.1);
+        }
+        .psa-i, .psa-w, .psa-r, .trc-r {
+            font-size: 1.75rem;
+            font-weight: 700;
+            text-align: center;
+            color: var(--text-primary);
+        }
+        .psa-interview, .psa-accept, .psa-refer, .trc-refer {
+            font-size: 0.875rem;
+            align-content: center;
+            color: var(--text-secondary);
+        }
+        .psa-i, .trc-r { grid-column: 1; grid-row: 1; }
+        .psa-interview, .trc-refer { grid-column: 2; grid-row: 1; }
+        .psa-w { grid-column: 1; grid-row: 2; }
+        .psa-accept { grid-column: 2; grid-row: 2; }
+        .psa-r { grid-column: 1; grid-row: 3; }
+        .psa-refer { grid-column: 2; grid-row: 3; }
+
+        /* Mini Pie Styling */
+        .pie-chart-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        .pie-chart-container {
+            flex: 1;
+            max-width: 200px;
+        }
+        .pie-chart-container h3 {
+            margin: 0 0 5px 0;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-align: center;
+        }
+        .grade-legend {
+            flex: 1;
+            padding-left: 15px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            margin-right: 8px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        @media print {
+            @page {
+                size: landscape;
+                margin: 15px;
+            }
+            body {
+                background-color: #fff !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .dashboard-grid {
+                transform: scale(0.75);
+                transform-origin: top left;
+                width: 133.33%;
+                height: 133.33%;
+                box-shadow: none;
+                border-radius: 0;
+            }
+            .card {
+                box-shadow: none !important;
+                border: 1px solid #ddd;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <div class="main-content">
+            <div class="page-header">
+                <div class="page-header-left">
+                    <h1 class="page-title">Dashboard</h1>
+                    <p class="page-subtitle">Company performance overview</p>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card card-mini-pie">
+                    <div class="pie-header">Success Activity</div>
+                    <div class="pie-chart-wrapper">
+                        <div class="pie-chart-container">
+                            <h3>Scheduled / Order</h3>
+                            <canvas id="scheduled-order"></canvas>
+                        </div>
+                        <div class="grade-legend" id="scheduled-order-legend"></div>
+                    </div>
+
+                    <div class="pie-chart-wrapper">
+                        <div class="pie-chart-container">
+                            <h3>Interviewed / Scheduled</h3>
+                            <canvas id="interview-scheduled"></canvas>
+                        </div>
+                        <div class="grade-legend" id="interview-scheduled-legend"></div>
+                    </div>
+
+                    <div class="pie-chart-wrapper">
+                        <div class="pie-chart-container">
+                            <h3>Accepted / Interviewed</h3>
+                            <canvas id="accepted-interview"></canvas>
+                        </div>
+                        <div class="grade-legend" id="accepted-interview-legend"></div>
+                    </div>
+                </div>
+                <div class="card card-speedometer">
+                    <h3 style="font-size:0.875rem;font-weight:600;color:var(--text-primary);margin-bottom:8px;">Success Speedometer</h3>
+                    <div class="overall-meter">
+                        <canvas id="open-order-meter"></canvas>
+                    </div>
+                </div>
+                <div class="card card-weekly">
+                    <canvas id="weekly-breakdown-chart"></canvas>
+                </div>
+                <div class="card card-bonuses">
+                    <div class="bonus-psa">
+                        <div class="psa-header">PSA - Bonus Program</div>
+                        <div class="psa-table">
+                            <div class="psa-i">I</div>
+                            <div class="psa-interview">~ $25 - Interview</div>
+                            <div class="psa-w">W</div>
+                            <div class="psa-accept">~ $25 - Accepted & Work > 40 hours</div>
+                            <div class="psa-r">R</div>
+                            <div class="psa-refer">~ $25 - Refer Someone & They Work > 80 hrs</div>
+                        </div>
+                    </div>
+                    <div class="bonus-trc">
+                        <div class="trc-header">TRC - Bonus Program</div>
+                        <div class="trc-table">
+                            <div class="trc-r">R</div>
+                            <div class="trc-refer">~ $100 - Refer Someone & They Work > 80 hrs</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card card-distribution">
+                    <div class="chart-wrapper">
+                        <h3>Branch Distribution</h3>
+                        <canvas id="bonus-distribution-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { checkAuth, checkPageAccess } from './src/auth.js';
+        import { initInactivityTimer } from './src/main.js';
+        import { renderNavbar } from './src/components/navbar.js';
+        import { renderSidebar } from './src/components/sidebar.js';
+
+        await checkAuth();
+        await checkPageAccess('dashboard');
+        renderNavbar();
+        await renderSidebar();
+        initInactivityTimer();
+    </script>
+
+    <script type="module">
+        import { supabase } from './src/supabaseClient.js';
+
+        // Set Chart.js defaults for design system
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#6B7280';
+
+        // Fetch aggregated totals from company_data
+        async function fetchCompanyTotals() {
+            const { data, error } = await supabase
+                .from('company_data')
+                .select('open_order, scheduled, interviewed, accepted, rom, car, aus');
+
+            if (error) {
+                console.error('Error fetching company totals:', error);
+                return null;
+            }
+
+            // Aggregate all rows into totals
+            const totals = {
+                TotalOpenOrder: 0,
+                TotalScheduled: 0,
+                TotalInterviewed: 0,
+                TotalAccepted: 0,
+                TotalROM: 0,
+                TotalCAR: 0,
+                TotalAUS: 0
+            };
+
+            data.forEach(row => {
+                totals.TotalOpenOrder += Number(row.open_order) || 0;
+                totals.TotalScheduled += Number(row.scheduled) || 0;
+                totals.TotalInterviewed += Number(row.interviewed) || 0;
+                totals.TotalAccepted += Number(row.accepted) || 0;
+                totals.TotalROM += Number(row.rom) || 0;
+                totals.TotalCAR += Number(row.car) || 0;
+                totals.TotalAUS += Number(row.aus) || 0;
+            });
+
+            return totals;
+        }
+
+        // Fetch weekly breakdown from company_data, grouped by week
+        async function fetchWeeklyData() {
+            const { data, error } = await supabase
+                .from('company_data')
+                .select('week, date, open_order, scheduled, interviewed, accepted')
+                .order('date', { ascending: true });
+
+            if (error) {
+                console.error('Error fetching weekly data:', error);
+                return [];
+            }
+
+            // Group rows by week and aggregate values per week
+            const weekMap = {};
+            data.forEach(row => {
+                const weekKey = row.week;
+                if (!weekMap[weekKey]) {
+                    weekMap[weekKey] = {
+                        week_start_date: row.date,
+                        weekly_open: 0,
+                        weekly_scheduled: 0,
+                        weekly_interviewed: 0,
+                        weekly_accepted: 0
+                    };
+                }
+                weekMap[weekKey].weekly_open += Number(row.open_order) || 0;
+                weekMap[weekKey].weekly_scheduled += Number(row.scheduled) || 0;
+                weekMap[weekKey].weekly_interviewed += Number(row.interviewed) || 0;
+                weekMap[weekKey].weekly_accepted += Number(row.accepted) || 0;
+            });
+
+            // Convert the map to an array sorted by date
+            return Object.values(weekMap).sort((a, b) => new Date(a.week_start_date) - new Date(b.week_start_date));
+        }
+
+        // Turn off chart animations for printing to prevent issues
+        const isPrinting = window.matchMedia('print');
+        if (isPrinting.matches) {
+            Chart.defaults.animation = false;
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const companyData = await fetchCompanyTotals();
+            const weeklyData = await fetchWeeklyData();
+
+            if (!companyData) {
+                console.error("No company data was loaded.");
+                return;
+            }
+
+            // Color Palette for a teal color
+            const colorPaletteDark = 'RGBA(0,128,128,1)';
+            const colorPaletteMedDark ='RGBA(0,128,128,.7)';
+            const colorPaletteMedLight = 'RGBA(0,128,128,.4)';
+            const colorPaletteLight = 'RGBA(0,128,128,.2)';
+
+            const getColorForRatio = (chartName, ratio) => {
+                const colors = { red: '#f56565', yellow: '#f6e05e', green: '#68d391' };
+                switch (chartName) {
+                    case 'scheduled-order':
+                        if (ratio < 0.50) return colors.red;
+                        if (ratio < 0.75) return colors.yellow;
+                        return colors.green;
+                    case 'interview-scheduled':
+                        if (ratio < 0.70) return colors.red;
+                        if (ratio < 0.90) return colors.yellow;
+                        return colors.green;
+                    case 'accepted-interview':
+                        if (ratio < 0.50) return colors.red;
+                        if (ratio < 0.80) return colors.yellow;
+                        return colors.green;
+                    default:
+                        return '#4299e1';
+                }
+            };
+
+            const createIndividualGradeLegend = (containerId, chartName) => {
+                const legendContainer = document.getElementById(containerId);
+                if (!legendContainer) return;
+                const thresholds = getThresholdsForChart(chartName);
+                let legendHTML = '';
+                legendHTML += `<div class="legend-item"><div class="legend-color" style="background-color: #68d391;"></div><span>>= ${thresholds.green}%</span></div>`;
+                legendHTML += `<div class="legend-item"><div class="legend-color" style="background-color: #f6e05e;"></div><span>${thresholds.yellow}% - ${thresholds.green - 1}%</span></div>`;
+                legendHTML += `<div class="legend-item"><div class="legend-color" style="background-color: #f56565;"></div><span>< ${thresholds.yellow}%</span></div>`;
+                legendContainer.innerHTML = legendHTML;
+            };
+
+            const getThresholdsForChart = (chartName) => {
+                switch (chartName) {
+                    case 'scheduled-order': return { green: 75, yellow: 50 };
+                    case 'interview-scheduled': return { green: 90, yellow: 70 };
+                    case 'accepted-interview': return { green: 80, yellow: 50 };
+                    default: return { green: 0, yellow: 0 };
+                }
+            };
+
+            const createRatioPieChart = (canvasId, primaryValue, totalValue, primaryLabel, secondaryLabel, chartName = null, legendContainerId = null) => {
+                const ctx = document.getElementById(canvasId);
+                if (!ctx) return;
+                const titleElement = ctx.closest('.pie-chart-container').querySelector('h3');
+                const primary = Number(primaryValue) || 0;
+                const total = Number(totalValue) || 0;
+                const secondary = total > primary ? total - primary : 0;
+                const ratio = total > 0 ? primary / total : 0;
+                const primaryColor = getColorForRatio(chartName, ratio);
+                const percentage = (ratio * 100).toFixed(0);
+                if (titleElement) {
+                    titleElement.textContent = `${primaryLabel} / ${secondaryLabel} (${percentage}%)`;
+                }
+                let backCanvasColor = '';
+                if (canvasId === 'scheduled-order'){
+                    backCanvasColor = colorPaletteLight;
+                } else if (canvasId === 'interview-scheduled'){
+                    backCanvasColor = colorPaletteMedLight;
+                } else if (canvasId === 'accepted-interview'){
+                    backCanvasColor = colorPaletteMedDark;
+                }
+                new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: [primaryLabel, secondaryLabel],
+                        datasets: [{ data: [primary, secondary], backgroundColor: [primaryColor, backCanvasColor], borderColor: '#ffffff', borderWidth: 2 }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { display: false },
+                            datalabels: { color: '#1a202c', font: { weight: 'bold', size: 14 }, formatter: (value) => value > 0 ? value : '' }
+                        }
+                    },
+                    plugins: [ChartDataLabels]
+                });
+                if (chartName && legendContainerId) {
+                    createIndividualGradeLegend(legendContainerId, chartName);
+                }
+            };
+
+            const calculateWeeklyAverages = (data) => {
+                const schedOrderRatios = [];
+                const interviewSchedRatios = [];
+                const acceptedInterviewRatios = [];
+
+                data.forEach(week => {
+                    const open = Number(week.weekly_open) || 0;
+                    const scheduled = Number(week.weekly_scheduled) || 0;
+                    const interviewed = Number(week.weekly_interviewed) || 0;
+                    const accepted = Number(week.weekly_accepted) || 0;
+
+                    schedOrderRatios.push(open > 0 ? (scheduled / open) : 0);
+                    interviewSchedRatios.push(scheduled > 0 ? (interviewed / scheduled) : 0);
+                    acceptedInterviewRatios.push(interviewed > 0 ? (accepted / interviewed) : 0);
+                });
+
+                const calculateAverage = (ratios) => {
+                    if (ratios.length === 0) return 0;
+                    const sum = ratios.reduce((acc, ratio) => acc + ratio, 0);
+                    return (sum / ratios.length) * 100;
+                };
+
+                return {
+                    avgSchedOrder: calculateAverage(schedOrderRatios),
+                    avgInterviewSched: calculateAverage(interviewSchedRatios),
+                    avgAcceptedInterview: calculateAverage(acceptedInterviewRatios)
+                };
+            };
+
+            const createAveragePieChart = (canvasId, averagePercentage, chartName, legendContainerId) => {
+                const ctx = document.getElementById(canvasId);
+                if (!ctx) return;
+
+                const titleElement = ctx.closest('.pie-chart-container').querySelector('h3');
+                const percentage = Number(averagePercentage) || 0;
+                const remaining = 100 - percentage;
+                const ratioForColor = percentage / 100;
+                const primaryColor = getColorForRatio(chartName, ratioForColor);
+
+                if (titleElement) {
+                    titleElement.textContent += ` (${percentage.toFixed(0)}%)`;
+                }
+
+                new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Average', ''],
+                        datasets: [{
+                            data: [percentage, remaining],
+                            backgroundColor: [primaryColor, '#e2e8f0'],
+                            borderColor: '#ffffff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (context) => `${context.label}: ${context.raw.toFixed(1)}%`
+                                }
+                            },
+                            datalabels: {
+                                color: '#1a202c',
+                                font: { weight: 'bold', size: 14 },
+                                formatter: (value, context) => {
+                                    return context.dataIndex === 0 ? `${value.toFixed(0)}%` : '';
+                                }
+                            }
+                        }
+                    },
+                    plugins: [ChartDataLabels]
+                });
+
+                if (chartName && legendContainerId) {
+                    createIndividualGradeLegend(legendContainerId, chartName);
+                }
+            };
+
+            const createOpenOrderMeter = (canvasId, data) => {
+                const ctx = document.getElementById(canvasId);
+                if (!ctx) return;
+
+                const totalScheduled = Number(data.TotalScheduled) || 0;
+                const totalInterviewed = Number(data.TotalInterviewed) || 0;
+                const totalAccepted = Number(data.TotalAccepted) || 0;
+                const totalOpenOrder = Number(data.TotalOpenOrder) || 0;
+
+                const acceptedPiece = totalAccepted;
+                const interviewedPiece = totalInterviewed - totalAccepted;
+                const scheduledPiece = totalScheduled - totalInterviewed;
+                const openPiece = totalOpenOrder - totalScheduled;
+
+                const displayValues = [totalAccepted, totalInterviewed, totalScheduled, openPiece];
+
+                new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Accepted', 'Interviewed', 'Scheduled', 'Unfulfilled'],
+                        datasets: [{
+                            data: [acceptedPiece, interviewedPiece, scheduledPiece, openPiece],
+                            backgroundColor: [colorPaletteDark, colorPaletteMedDark, colorPaletteMedLight, colorPaletteLight],
+                            borderColor: '#ffffff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        rotation: -90,
+                        circumference: 180,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: `Total Open Orders: ${totalOpenOrder}`,
+                                font: { size: 12, weight: 'bold' },
+                                color: '#1F2937',
+                            },
+                            legend: {
+                                display: true,
+                                position: 'bottom',
+                                labels: { boxWidth: 12, padding: 20 }
+                            },
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'start',
+                                color: '#1a202c',
+                                font: { size: 14, weight: 'bold', },
+                                formatter: (value, context) => {
+                                    const sliceValue = context.dataset.data[context.dataIndex];
+                                    if (sliceValue <= 0) {
+                                        return '';
+                                    }
+                                    const displayValue = displayValues[context.dataIndex];
+                                    const percentage = totalOpenOrder > 0
+                                        ? ((displayValue / totalOpenOrder) * 100).toFixed(0)
+                                        : 0;
+                                    return `${displayValue} ~ ${percentage}%`;
+                                }
+                            }
+                        }
+                    },
+                    plugins: [ChartDataLabels]
+                });
+            };
+            const createMultiSlicePieChart = (canvasId, dataValues, dataLabels) => {
+                const ctx = document.getElementById(canvasId);
+                if (!ctx) return;
+
+                const total = companyData.TotalAccepted;
+                const sliceColors = ['RGB(255,102,204)', 'RGBA(255,102,204,.6)', 'RGBA(255,102,204,.2)'];
+
+                new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: dataLabels,
+                        datasets: [{ data: dataValues, backgroundColor: sliceColors, borderColor: '#ffffff', borderWidth: 2 }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: true, position: 'bottom', labels: { boxWidth: 12, padding: 20 } },
+                            datalabels: {
+                                color: '#1a202c',
+                                font: { size: 14, weight: 'bold' },
+                                formatter: (value, context) => {
+                                    if (value <= 0) {
+                                        return '';
+                                    }
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(0) : 0;
+                                    return `${value} ~ ${percentage}%`;
+                                }
+                            }
+                        }
+                    },
+                    plugins: [ChartDataLabels]
+                });
+            };
+            const createWeeklyLineChart = (canvasId, data) => {
+                const ctx = document.getElementById(canvasId);
+                if (!ctx || !data || data.length === 0) {
+                    console.log("No weekly data available to create line chart.");
+                    if(ctx) {
+                       ctx.parentElement.innerHTML = '<p style="text-align: center; color: #718096; margin-top: 40px;">Not enough weekly data to display chart.</p>';
+                    }
+                    return;
+                }
+
+                const labels = data.map(item => item.week_start_date);
+                const openData = data.map(item => item.weekly_open);
+                const scheduledData = data.map(item => item.weekly_scheduled);
+                const interviewedData = data.map(item => item.weekly_interviewed);
+                const acceptedData = data.map(item => item.weekly_accepted);
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Open Orders',
+                                data: openData,
+                                borderColor: colorPaletteLight,
+                                tension: 0.3,
+                            },
+                            {
+                                label: 'Scheduled',
+                                data: scheduledData,
+                                borderColor: colorPaletteMedLight,
+                                tension: 0.3,
+                            },
+                            {
+                                label: 'Interviewed',
+                                data: interviewedData,
+                                borderColor: colorPaletteMedDark,
+                                tension: 0.3,
+                            },
+                            {
+                                label: 'Accepted',
+                                data: acceptedData,
+                                borderColor: colorPaletteDark,
+                                tension: 0.3,
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Weekly Activity Breakdown',
+                                font: { size: 14, weight: 'bold' },
+                                color: '#1F2937',
+                            },
+                            datalabels: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            };
+
+            // Existing Chart Calls
+            createOpenOrderMeter('open-order-meter', companyData);
+            createWeeklyLineChart('weekly-breakdown-chart', weeklyData);
+            createRatioPieChart('scheduled-order', companyData.TotalScheduled, companyData.TotalOpenOrder, 'Scheduled', 'Order', 'scheduled-order', 'scheduled-order-legend');
+            createRatioPieChart('interview-scheduled', companyData.TotalInterviewed, companyData.TotalScheduled, 'Interviewed', 'Scheduled', 'interview-scheduled', 'interview-scheduled-legend');
+            createRatioPieChart('accepted-interview', companyData.TotalAccepted, companyData.TotalInterviewed, 'Accepted', 'Interviewed', 'accepted-interview', 'accepted-interview-legend');
+            createMultiSlicePieChart('bonus-distribution-chart', [companyData.TotalROM || 0, companyData.TotalCAR || 0, companyData.TotalAUS || 0], ['ROM', 'CAR', 'AUS']);
+        });
+    </script>
+</body>
+</html>
