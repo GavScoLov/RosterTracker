@@ -10,108 +10,199 @@
     <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/9352/9352254.png">
     <link rel="stylesheet" href="./src/design-system.css">
     <style>
+        /* ── Summary stat cards row ── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .summary-stat {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 18px 20px;
+        }
+        .summary-stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+        .summary-stat-icon.open { background: rgba(5, 150, 105, 0.1); color: var(--primary); }
+        .summary-stat-icon.sched { background: rgba(0, 128, 128, 0.1); color: teal; }
+        .summary-stat-icon.intv { background: rgba(99, 102, 241, 0.1); color: #6366F1; }
+        .summary-stat-icon.acpt { background: rgba(16, 185, 129, 0.1); color: #10B981; }
+        .summary-stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+        .summary-stat-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        /* ── Main dashboard grid ── */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 325px 1fr 1fr 1fr 475px;
-            grid-template-rows: 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: auto auto;
             gap: 20px;
         }
+
+        .dashboard-grid > .card {
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        /* Speedometer — top left, spans 2 cols */
+        .card-speedometer {
+            grid-column: 1 / 3;
+            text-align: center;
+            height: 340px;
+        }
+
+        /* Branch Distribution — top right */
+        .card-distribution {
+            grid-column: 3;
+            height: 340px;
+        }
+
+        /* Success Activity pies — middle row, spans 2 cols */
         .card-mini-pie {
-            grid-row: 1 / 3;
-            grid-column: 1;
+            grid-column: 1 / 3;
             display: flex;
             flex-direction: column;
-            justify-content: space-around;
         }
-        .card-speedometer {
-            grid-row: 1;
-            grid-column: 2 / 4;
-            text-align: center;
-        }
-        .card-weekly {
-            grid-row: 2;
-            grid-column: 2 / 6;
-        }
+
+        /* Bonuses — middle right */
         .card-bonuses {
-            grid-row: 1;
-            grid-column: 5;
+            grid-column: 3;
+            overflow-y: auto;
         }
-        .card-distribution {
-            grid-row: 1;
-            grid-column: 4;
-            min-height: 0;
+
+        /* Weekly chart — full width bottom */
+        .card-weekly {
+            grid-column: 1 / -1;
+            height: 320px;
         }
-        .pie-header {
-            font-size: 1.125rem;
-            font-weight: 700;
-            text-align: center;
-            color: var(--text-primary);
-            margin-bottom: 8px;
+
+        /* ── Card section titles ── */
+        .card-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
         }
+
+        /* ── Chart container helpers ── */
+        .chart-fill {
+            position: relative;
+            width: 100%;
+            height: calc(100% - 30px);
+        }
+
+        /* ── Speedometer ── */
         .overall-meter {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            height: calc(100% - 30px);
         }
-        .chart-wrapper {
-            position: relative;
-            width: 100%;
-            height: calc(100% - 20px);
+
+        /* ── Mini Pie Row ── */
+        .pie-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            flex: 1;
+        }
+        .pie-cell {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            text-align: center;
+            padding: 8px 0;
         }
-        .chart-wrapper h3 {
-            font-size: 0.875rem;
+        .pie-cell h4 {
+            font-size: 0.75rem;
             font-weight: 600;
             color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+        .pie-canvas-wrap {
+            width: 100%;
+            max-width: 140px;
             margin-bottom: 8px;
         }
+        .grade-legend {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+        .legend-color {
+            width: 8px;
+            height: 8px;
+            margin-right: 4px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
 
-        /* Bonuses Styling */
-        .bonus-psa, .bonus-trc {
-            margin-bottom: 10px;
-        }
-        .bonus-trc {
-            margin-bottom: 0;
-        }
+        /* ── Bonuses Styling ── */
+        .bonus-psa, .bonus-trc { margin-bottom: 12px; }
+        .bonus-trc { margin-bottom: 0; }
         .psa-header, .trc-header {
-            background-color: rgba(5, 150, 105, 0.8);
-            font-size: 2rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            font-size: 1rem;
             color: #fff;
-            padding: 10px 18px;
-            border-top-right-radius: var(--radius);
-            border-top-left-radius: var(--radius);
+            padding: 10px 16px;
+            border-radius: var(--radius) var(--radius) 0 0;
             font-weight: 700;
+            letter-spacing: 0.02em;
         }
         .trc-header {
-            background-color: rgba(16, 185, 129, 0.8);
+            background: linear-gradient(135deg, var(--primary-light) 0%, #34D399 100%);
         }
         .psa-table, .trc-table {
-            background-color: rgba(5, 150, 105, 0.1);
-            padding: 8px;
+            background-color: rgba(var(--primary-rgb), 0.04);
+            border: 1px solid rgba(var(--primary-rgb), 0.1);
+            border-top: none;
+            padding: 10px 12px;
             display: grid;
-            grid-template-columns: 50px auto;
-            grid-template-rows: 1fr 1fr 1fr;
-            border-bottom-right-radius: var(--radius);
-            border-bottom-left-radius: var(--radius);
-        }
-        .trc-table {
-            grid-template-rows: 1fr;
-            background-color: rgba(16, 185, 129, 0.1);
+            grid-template-columns: 36px 1fr;
+            gap: 4px 8px;
+            border-radius: 0 0 var(--radius) var(--radius);
         }
         .psa-i, .psa-w, .psa-r, .trc-r {
-            font-size: 1.75rem;
+            font-size: 1.125rem;
             font-weight: 700;
             text-align: center;
-            color: var(--text-primary);
+            color: var(--primary);
         }
         .psa-interview, .psa-accept, .psa-refer, .trc-refer {
-            font-size: 0.875rem;
-            align-content: center;
+            font-size: 0.8rem;
             color: var(--text-secondary);
+            align-self: center;
         }
         .psa-i, .trc-r { grid-column: 1; grid-row: 1; }
         .psa-interview, .trc-refer { grid-column: 2; grid-row: 1; }
@@ -120,65 +211,57 @@
         .psa-r { grid-column: 1; grid-row: 3; }
         .psa-refer { grid-column: 2; grid-row: 3; }
 
-        /* Mini Pie Styling */
-        .pie-chart-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 10px;
-        }
-        .pie-chart-container {
-            flex: 1;
-            max-width: 200px;
-        }
-        .pie-chart-container h3 {
-            margin: 0 0 5px 0;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            text-align: center;
-        }
-        .grade-legend {
-            flex: 1;
-            padding-left: 15px;
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 5px;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-        .legend-color {
-            width: 12px;
-            height: 12px;
-            margin-right: 8px;
-            border-radius: 2px;
-            flex-shrink: 0;
+        /* ── Responsive breakpoints ── */
+
+        /* Tablet landscape */
+        @media (max-width: 1200px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .dashboard-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .card-speedometer { grid-column: 1 / -1; height: 300px; }
+            .card-distribution { grid-column: 1; height: 300px; }
+            .card-mini-pie { grid-column: 2; }
+            .card-bonuses { grid-column: 1 / -1; }
+            .card-weekly { grid-column: 1 / -1; height: 280px; }
+            .pie-row {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
 
-        @media print {
-            @page {
-                size: landscape;
-                margin: 15px;
+        /* Tablet portrait */
+        @media (max-width: 900px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
             }
+            .card-speedometer { grid-column: 1; height: 280px; }
+            .card-distribution { grid-column: 1; height: 280px; }
+            .card-mini-pie { grid-column: 1; }
+            .card-bonuses { grid-column: 1; }
+            .card-weekly { grid-column: 1; height: 260px; }
+        }
+
+        /* Mobile */
+        @media (max-width: 640px) {
+            .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .summary-stat { padding: 14px 16px; gap: 10px; }
+            .summary-stat-icon { width: 36px; height: 36px; font-size: 1rem; }
+            .summary-stat-value { font-size: 1.25rem; }
+            .pie-row { grid-template-columns: 1fr; gap: 20px; }
+            .pie-canvas-wrap { max-width: 160px; }
+            .card-weekly { height: 240px; }
+        }
+
+        /* ── Print ── */
+        @media print {
+            @page { size: landscape; margin: 15px; }
             body {
                 background-color: #fff !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
-            .dashboard-grid {
-                transform: scale(0.75);
-                transform-origin: top left;
-                width: 133.33%;
-                height: 133.33%;
-                box-shadow: none;
-                border-radius: 0;
-            }
-            .card {
-                box-shadow: none !important;
-                border: 1px solid #ddd;
-            }
+            .stats-row, .dashboard-grid { gap: 12px; }
+            .card { box-shadow: none !important; border: 1px solid #ddd; }
         }
     </style>
 </head>
@@ -192,66 +275,114 @@
                 </div>
             </div>
 
-            <div class="dashboard-grid">
-                <div class="card card-mini-pie">
-                    <div class="pie-header">Success Activity</div>
-                    <div class="pie-chart-wrapper">
-                        <div class="pie-chart-container">
-                            <h3>Scheduled / Order</h3>
-                            <canvas id="scheduled-order"></canvas>
-                        </div>
-                        <div class="grade-legend" id="scheduled-order-legend"></div>
+            <!-- Summary Stats -->
+            <div class="stats-row">
+                <div class="card summary-stat">
+                    <div class="summary-stat-icon open">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
                     </div>
-
-                    <div class="pie-chart-wrapper">
-                        <div class="pie-chart-container">
-                            <h3>Interviewed / Scheduled</h3>
-                            <canvas id="interview-scheduled"></canvas>
-                        </div>
-                        <div class="grade-legend" id="interview-scheduled-legend"></div>
-                    </div>
-
-                    <div class="pie-chart-wrapper">
-                        <div class="pie-chart-container">
-                            <h3>Accepted / Interviewed</h3>
-                            <canvas id="accepted-interview"></canvas>
-                        </div>
-                        <div class="grade-legend" id="accepted-interview-legend"></div>
+                    <div>
+                        <div class="summary-stat-value" id="stat-open">--</div>
+                        <div class="summary-stat-label">Open Orders</div>
                     </div>
                 </div>
+                <div class="card summary-stat">
+                    <div class="summary-stat-icon sched">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
+                    </div>
+                    <div>
+                        <div class="summary-stat-value" id="stat-sched">--</div>
+                        <div class="summary-stat-label">Scheduled</div>
+                    </div>
+                </div>
+                <div class="card summary-stat">
+                    <div class="summary-stat-icon intv">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" /></svg>
+                    </div>
+                    <div>
+                        <div class="summary-stat-value" id="stat-intv">--</div>
+                        <div class="summary-stat-label">Interviewed</div>
+                    </div>
+                </div>
+                <div class="card summary-stat">
+                    <div class="summary-stat-icon acpt">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                    </div>
+                    <div>
+                        <div class="summary-stat-value" id="stat-acpt">--</div>
+                        <div class="summary-stat-label">Accepted</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="dashboard-grid">
+                <!-- Speedometer — top left -->
                 <div class="card card-speedometer">
-                    <h3 style="font-size:0.875rem;font-weight:600;color:var(--text-primary);margin-bottom:8px;">Success Speedometer</h3>
+                    <div class="card-title">Success Speedometer</div>
                     <div class="overall-meter">
                         <canvas id="open-order-meter"></canvas>
                     </div>
                 </div>
-                <div class="card card-weekly">
-                    <canvas id="weekly-breakdown-chart"></canvas>
+
+                <!-- Branch Distribution — top right -->
+                <div class="card card-distribution">
+                    <div class="card-title">Branch Distribution</div>
+                    <div class="chart-fill">
+                        <canvas id="bonus-distribution-chart"></canvas>
+                    </div>
                 </div>
+
+                <!-- Success Activity pies -->
+                <div class="card card-mini-pie">
+                    <div class="card-title">Success Activity</div>
+                    <div class="pie-row">
+                        <div class="pie-cell">
+                            <h4>Scheduled / Order</h4>
+                            <div class="pie-canvas-wrap"><canvas id="scheduled-order"></canvas></div>
+                            <div class="grade-legend" id="scheduled-order-legend"></div>
+                        </div>
+                        <div class="pie-cell">
+                            <h4>Interviewed / Scheduled</h4>
+                            <div class="pie-canvas-wrap"><canvas id="interview-scheduled"></canvas></div>
+                            <div class="grade-legend" id="interview-scheduled-legend"></div>
+                        </div>
+                        <div class="pie-cell">
+                            <h4>Accepted / Interviewed</h4>
+                            <div class="pie-canvas-wrap"><canvas id="accepted-interview"></canvas></div>
+                            <div class="grade-legend" id="accepted-interview-legend"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bonuses -->
                 <div class="card card-bonuses">
+                    <div class="card-title">Bonus Programs</div>
                     <div class="bonus-psa">
                         <div class="psa-header">PSA - Bonus Program</div>
                         <div class="psa-table">
                             <div class="psa-i">I</div>
                             <div class="psa-interview">~ $25 - Interview</div>
                             <div class="psa-w">W</div>
-                            <div class="psa-accept">~ $25 - Accepted & Work > 40 hours</div>
+                            <div class="psa-accept">~ $25 - Accepted & Work > 40 hrs</div>
                             <div class="psa-r">R</div>
-                            <div class="psa-refer">~ $25 - Refer Someone & They Work > 80 hrs</div>
+                            <div class="psa-refer">~ $25 - Referral works > 80 hrs</div>
                         </div>
                     </div>
                     <div class="bonus-trc">
                         <div class="trc-header">TRC - Bonus Program</div>
                         <div class="trc-table">
                             <div class="trc-r">R</div>
-                            <div class="trc-refer">~ $100 - Refer Someone & They Work > 80 hrs</div>
+                            <div class="trc-refer">~ $100 - Referral works > 80 hrs</div>
                         </div>
                     </div>
                 </div>
-                <div class="card card-distribution">
-                    <div class="chart-wrapper">
-                        <h3>Branch Distribution</h3>
-                        <canvas id="bonus-distribution-chart"></canvas>
+
+                <!-- Weekly Breakdown — full width -->
+                <div class="card card-weekly">
+                    <div class="card-title">Weekly Activity</div>
+                    <div class="chart-fill">
+                        <canvas id="weekly-breakdown-chart"></canvas>
                     </div>
                 </div>
             </div>
@@ -289,15 +420,9 @@
                 return null;
             }
 
-            // Aggregate all rows into totals
             const totals = {
-                TotalOpenOrder: 0,
-                TotalScheduled: 0,
-                TotalInterviewed: 0,
-                TotalAccepted: 0,
-                TotalROM: 0,
-                TotalCAR: 0,
-                TotalAUS: 0
+                TotalOpenOrder: 0, TotalScheduled: 0, TotalInterviewed: 0,
+                TotalAccepted: 0, TotalROM: 0, TotalCAR: 0, TotalAUS: 0
             };
 
             data.forEach(row => {
@@ -325,17 +450,14 @@
                 return [];
             }
 
-            // Group rows by week and aggregate values per week
             const weekMap = {};
             data.forEach(row => {
                 const weekKey = row.week;
                 if (!weekMap[weekKey]) {
                     weekMap[weekKey] = {
                         week_start_date: row.date,
-                        weekly_open: 0,
-                        weekly_scheduled: 0,
-                        weekly_interviewed: 0,
-                        weekly_accepted: 0
+                        weekly_open: 0, weekly_scheduled: 0,
+                        weekly_interviewed: 0, weekly_accepted: 0
                     };
                 }
                 weekMap[weekKey].weekly_open += Number(row.open_order) || 0;
@@ -344,13 +466,11 @@
                 weekMap[weekKey].weekly_accepted += Number(row.accepted) || 0;
             });
 
-            // Convert the map to an array sorted by date
             return Object.values(weekMap).sort((a, b) => new Date(a.week_start_date) - new Date(b.week_start_date));
         }
 
-        // Turn off chart animations for printing to prevent issues
-        const isPrinting = window.matchMedia('print');
-        if (isPrinting.matches) {
+        // Turn off chart animations for printing
+        if (window.matchMedia('print').matches) {
             Chart.defaults.animation = false;
         }
 
@@ -363,14 +483,20 @@
                 return;
             }
 
-            // Color Palette for a teal color
-            const colorPaletteDark = 'RGBA(0,128,128,1)';
-            const colorPaletteMedDark ='RGBA(0,128,128,.7)';
-            const colorPaletteMedLight = 'RGBA(0,128,128,.4)';
-            const colorPaletteLight = 'RGBA(0,128,128,.2)';
+            // Populate summary stat cards
+            document.getElementById('stat-open').textContent = companyData.TotalOpenOrder.toLocaleString();
+            document.getElementById('stat-sched').textContent = companyData.TotalScheduled.toLocaleString();
+            document.getElementById('stat-intv').textContent = companyData.TotalInterviewed.toLocaleString();
+            document.getElementById('stat-acpt').textContent = companyData.TotalAccepted.toLocaleString();
+
+            // Color Palette
+            const colorPaletteDark = 'rgba(5, 150, 105, 1)';
+            const colorPaletteMedDark = 'rgba(5, 150, 105, 0.7)';
+            const colorPaletteMedLight = 'rgba(5, 150, 105, 0.4)';
+            const colorPaletteLight = 'rgba(5, 150, 105, 0.15)';
 
             const getColorForRatio = (chartName, ratio) => {
-                const colors = { red: '#f56565', yellow: '#f6e05e', green: '#68d391' };
+                const colors = { red: '#EF4444', yellow: '#F59E0B', green: '#10B981' };
                 switch (chartName) {
                     case 'scheduled-order':
                         if (ratio < 0.50) return colors.red;
@@ -389,17 +515,6 @@
                 }
             };
 
-            const createIndividualGradeLegend = (containerId, chartName) => {
-                const legendContainer = document.getElementById(containerId);
-                if (!legendContainer) return;
-                const thresholds = getThresholdsForChart(chartName);
-                let legendHTML = '';
-                legendHTML += `<div class="legend-item"><div class="legend-color" style="background-color: #68d391;"></div><span>>= ${thresholds.green}%</span></div>`;
-                legendHTML += `<div class="legend-item"><div class="legend-color" style="background-color: #f6e05e;"></div><span>${thresholds.yellow}% - ${thresholds.green - 1}%</span></div>`;
-                legendHTML += `<div class="legend-item"><div class="legend-color" style="background-color: #f56565;"></div><span>< ${thresholds.yellow}%</span></div>`;
-                legendContainer.innerHTML = legendHTML;
-            };
-
             const getThresholdsForChart = (chartName) => {
                 switch (chartName) {
                     case 'scheduled-order': return { green: 75, yellow: 50 };
@@ -409,10 +524,21 @@
                 }
             };
 
+            const createIndividualGradeLegend = (containerId, chartName) => {
+                const legendContainer = document.getElementById(containerId);
+                if (!legendContainer) return;
+                const t = getThresholdsForChart(chartName);
+                legendContainer.innerHTML = `
+                    <div class="legend-item"><div class="legend-color" style="background:#10B981;"></div><span>>= ${t.green}%</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background:#F59E0B;"></div><span>${t.yellow}-${t.green - 1}%</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background:#EF4444;"></div><span>< ${t.yellow}%</span></div>
+                `;
+            };
+
             const createRatioPieChart = (canvasId, primaryValue, totalValue, primaryLabel, secondaryLabel, chartName = null, legendContainerId = null) => {
                 const ctx = document.getElementById(canvasId);
                 if (!ctx) return;
-                const titleElement = ctx.closest('.pie-chart-container').querySelector('h3');
+                const titleElement = ctx.closest('.pie-cell')?.querySelector('h4');
                 const primary = Number(primaryValue) || 0;
                 const total = Number(totalValue) || 0;
                 const secondary = total > primary ? total - primary : 0;
@@ -422,85 +548,14 @@
                 if (titleElement) {
                     titleElement.textContent = `${primaryLabel} / ${secondaryLabel} (${percentage}%)`;
                 }
-                let backCanvasColor = '';
-                if (canvasId === 'scheduled-order'){
-                    backCanvasColor = colorPaletteLight;
-                } else if (canvasId === 'interview-scheduled'){
-                    backCanvasColor = colorPaletteMedLight;
-                } else if (canvasId === 'accepted-interview'){
-                    backCanvasColor = colorPaletteMedDark;
-                }
+
                 new Chart(ctx, {
-                    type: 'pie',
+                    type: 'doughnut',
                     data: {
                         labels: [primaryLabel, secondaryLabel],
-                        datasets: [{ data: [primary, secondary], backgroundColor: [primaryColor, backCanvasColor], borderColor: '#ffffff', borderWidth: 2 }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        plugins: {
-                            legend: { display: false },
-                            datalabels: { color: '#1a202c', font: { weight: 'bold', size: 14 }, formatter: (value) => value > 0 ? value : '' }
-                        }
-                    },
-                    plugins: [ChartDataLabels]
-                });
-                if (chartName && legendContainerId) {
-                    createIndividualGradeLegend(legendContainerId, chartName);
-                }
-            };
-
-            const calculateWeeklyAverages = (data) => {
-                const schedOrderRatios = [];
-                const interviewSchedRatios = [];
-                const acceptedInterviewRatios = [];
-
-                data.forEach(week => {
-                    const open = Number(week.weekly_open) || 0;
-                    const scheduled = Number(week.weekly_scheduled) || 0;
-                    const interviewed = Number(week.weekly_interviewed) || 0;
-                    const accepted = Number(week.weekly_accepted) || 0;
-
-                    schedOrderRatios.push(open > 0 ? (scheduled / open) : 0);
-                    interviewSchedRatios.push(scheduled > 0 ? (interviewed / scheduled) : 0);
-                    acceptedInterviewRatios.push(interviewed > 0 ? (accepted / interviewed) : 0);
-                });
-
-                const calculateAverage = (ratios) => {
-                    if (ratios.length === 0) return 0;
-                    const sum = ratios.reduce((acc, ratio) => acc + ratio, 0);
-                    return (sum / ratios.length) * 100;
-                };
-
-                return {
-                    avgSchedOrder: calculateAverage(schedOrderRatios),
-                    avgInterviewSched: calculateAverage(interviewSchedRatios),
-                    avgAcceptedInterview: calculateAverage(acceptedInterviewRatios)
-                };
-            };
-
-            const createAveragePieChart = (canvasId, averagePercentage, chartName, legendContainerId) => {
-                const ctx = document.getElementById(canvasId);
-                if (!ctx) return;
-
-                const titleElement = ctx.closest('.pie-chart-container').querySelector('h3');
-                const percentage = Number(averagePercentage) || 0;
-                const remaining = 100 - percentage;
-                const ratioForColor = percentage / 100;
-                const primaryColor = getColorForRatio(chartName, ratioForColor);
-
-                if (titleElement) {
-                    titleElement.textContent += ` (${percentage.toFixed(0)}%)`;
-                }
-
-                new Chart(ctx, {
-                    type: 'pie',
-                    data: {
-                        labels: ['Average', ''],
                         datasets: [{
-                            data: [percentage, remaining],
-                            backgroundColor: [primaryColor, '#e2e8f0'],
+                            data: [primary, secondary],
+                            backgroundColor: [primaryColor, '#F3F4F6'],
                             borderColor: '#ffffff',
                             borderWidth: 2
                         }]
@@ -508,25 +563,18 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: true,
+                        cutout: '55%',
                         plugins: {
                             legend: { display: false },
-                            tooltip: {
-                                callbacks: {
-                                    label: (context) => `${context.label}: ${context.raw.toFixed(1)}%`
-                                }
-                            },
                             datalabels: {
-                                color: '#1a202c',
-                                font: { weight: 'bold', size: 14 },
-                                formatter: (value, context) => {
-                                    return context.dataIndex === 0 ? `${value.toFixed(0)}%` : '';
-                                }
+                                color: '#1F2937',
+                                font: { weight: 'bold', size: 12 },
+                                formatter: (value) => value > 0 ? value : ''
                             }
                         }
                     },
                     plugins: [ChartDataLabels]
                 });
-
                 if (chartName && legendContainerId) {
                     createIndividualGradeLegend(legendContainerId, chartName);
                 }
@@ -545,11 +593,10 @@
                 const interviewedPiece = totalInterviewed - totalAccepted;
                 const scheduledPiece = totalScheduled - totalInterviewed;
                 const openPiece = totalOpenOrder - totalScheduled;
-
                 const displayValues = [totalAccepted, totalInterviewed, totalScheduled, openPiece];
 
                 new Chart(ctx, {
-                    type: 'pie',
+                    type: 'doughnut',
                     data: {
                         labels: ['Accepted', 'Interviewed', 'Scheduled', 'Unfulfilled'],
                         datasets: [{
@@ -564,33 +611,30 @@
                         maintainAspectRatio: false,
                         rotation: -90,
                         circumference: 180,
+                        cutout: '50%',
                         plugins: {
                             title: {
                                 display: true,
-                                text: `Total Open Orders: ${totalOpenOrder}`,
-                                font: { size: 12, weight: 'bold' },
+                                text: `Total Open Orders: ${totalOpenOrder.toLocaleString()}`,
+                                font: { size: 13, weight: '600' },
                                 color: '#1F2937',
+                                padding: { bottom: 8 }
                             },
                             legend: {
                                 display: true,
                                 position: 'bottom',
-                                labels: { boxWidth: 12, padding: 20 }
+                                labels: { boxWidth: 10, padding: 16, font: { size: 11 } }
                             },
                             datalabels: {
                                 anchor: 'end',
                                 align: 'start',
-                                color: '#1a202c',
-                                font: { size: 14, weight: 'bold', },
+                                color: '#1F2937',
+                                font: { size: 12, weight: '600' },
                                 formatter: (value, context) => {
-                                    const sliceValue = context.dataset.data[context.dataIndex];
-                                    if (sliceValue <= 0) {
-                                        return '';
-                                    }
-                                    const displayValue = displayValues[context.dataIndex];
-                                    const percentage = totalOpenOrder > 0
-                                        ? ((displayValue / totalOpenOrder) * 100).toFixed(0)
-                                        : 0;
-                                    return `${displayValue} ~ ${percentage}%`;
+                                    if (context.dataset.data[context.dataIndex] <= 0) return '';
+                                    const dv = displayValues[context.dataIndex];
+                                    const pct = totalOpenOrder > 0 ? ((dv / totalOpenOrder) * 100).toFixed(0) : 0;
+                                    return `${dv} ~ ${pct}%`;
                                 }
                             }
                         }
@@ -598,15 +642,16 @@
                     plugins: [ChartDataLabels]
                 });
             };
+
             const createMultiSlicePieChart = (canvasId, dataValues, dataLabels) => {
                 const ctx = document.getElementById(canvasId);
                 if (!ctx) return;
 
                 const total = companyData.TotalAccepted;
-                const sliceColors = ['RGB(255,102,204)', 'RGBA(255,102,204,.6)', 'RGBA(255,102,204,.2)'];
+                const sliceColors = [colorPaletteDark, colorPaletteMedDark, colorPaletteMedLight];
 
                 new Chart(ctx, {
-                    type: 'pie',
+                    type: 'doughnut',
                     data: {
                         labels: dataLabels,
                         datasets: [{ data: dataValues, backgroundColor: sliceColors, borderColor: '#ffffff', borderWidth: 2 }]
@@ -614,17 +659,16 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        cutout: '45%',
                         plugins: {
-                            legend: { display: true, position: 'bottom', labels: { boxWidth: 12, padding: 20 } },
+                            legend: { display: true, position: 'bottom', labels: { boxWidth: 10, padding: 16, font: { size: 11 } } },
                             datalabels: {
-                                color: '#1a202c',
-                                font: { size: 14, weight: 'bold' },
-                                formatter: (value, context) => {
-                                    if (value <= 0) {
-                                        return '';
-                                    }
-                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(0) : 0;
-                                    return `${value} ~ ${percentage}%`;
+                                color: '#1F2937',
+                                font: { size: 12, weight: '600' },
+                                formatter: (value) => {
+                                    if (value <= 0) return '';
+                                    const pct = total > 0 ? ((value / total) * 100).toFixed(0) : 0;
+                                    return `${value} (${pct}%)`;
                                 }
                             }
                         }
@@ -632,80 +676,43 @@
                     plugins: [ChartDataLabels]
                 });
             };
+
             const createWeeklyLineChart = (canvasId, data) => {
                 const ctx = document.getElementById(canvasId);
                 if (!ctx || !data || data.length === 0) {
-                    console.log("No weekly data available to create line chart.");
-                    if(ctx) {
-                       ctx.parentElement.innerHTML = '<p style="text-align: center; color: #718096; margin-top: 40px;">Not enough weekly data to display chart.</p>';
-                    }
+                    if (ctx) ctx.parentElement.innerHTML = '<p style="text-align:center;color:#718096;margin-top:40px;">Not enough weekly data to display chart.</p>';
                     return;
                 }
 
                 const labels = data.map(item => item.week_start_date);
-                const openData = data.map(item => item.weekly_open);
-                const scheduledData = data.map(item => item.weekly_scheduled);
-                const interviewedData = data.map(item => item.weekly_interviewed);
-                const acceptedData = data.map(item => item.weekly_accepted);
-
                 new Chart(ctx, {
                     type: 'line',
                     data: {
                         labels: labels,
                         datasets: [
-                            {
-                                label: 'Open Orders',
-                                data: openData,
-                                borderColor: colorPaletteLight,
-                                tension: 0.3,
-                            },
-                            {
-                                label: 'Scheduled',
-                                data: scheduledData,
-                                borderColor: colorPaletteMedLight,
-                                tension: 0.3,
-                            },
-                            {
-                                label: 'Interviewed',
-                                data: interviewedData,
-                                borderColor: colorPaletteMedDark,
-                                tension: 0.3,
-                            },
-                            {
-                                label: 'Accepted',
-                                data: acceptedData,
-                                borderColor: colorPaletteDark,
-                                tension: 0.3,
-                            }
+                            { label: 'Open Orders', data: data.map(i => i.weekly_open), borderColor: colorPaletteLight, backgroundColor: 'rgba(5,150,105,0.03)', fill: true, tension: 0.35, borderWidth: 2 },
+                            { label: 'Scheduled', data: data.map(i => i.weekly_scheduled), borderColor: colorPaletteMedLight, tension: 0.35, borderWidth: 2 },
+                            { label: 'Interviewed', data: data.map(i => i.weekly_interviewed), borderColor: colorPaletteMedDark, tension: 0.35, borderWidth: 2 },
+                            { label: 'Accepted', data: data.map(i => i.weekly_accepted), borderColor: colorPaletteDark, tension: 0.35, borderWidth: 2, pointRadius: 3 }
                         ]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
                         plugins: {
-                            legend: {
-                                position: 'top',
-                            },
-                            title: {
-                                display: true,
-                                text: 'Weekly Activity Breakdown',
-                                font: { size: 14, weight: 'bold' },
-                                color: '#1F2937',
-                            },
-                            datalabels: {
-                                display: false
-                            }
+                            legend: { position: 'top', labels: { boxWidth: 10, padding: 16, font: { size: 11 } } },
+                            datalabels: { display: false }
                         },
                         scales: {
-                            y: {
-                                beginAtZero: true
-                            }
+                            x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: 10 } } },
+                            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } }
                         }
                     }
                 });
             };
 
-            // Existing Chart Calls
+            // Render all charts
             createOpenOrderMeter('open-order-meter', companyData);
             createWeeklyLineChart('weekly-breakdown-chart', weeklyData);
             createRatioPieChart('scheduled-order', companyData.TotalScheduled, companyData.TotalOpenOrder, 'Scheduled', 'Order', 'scheduled-order', 'scheduled-order-legend');

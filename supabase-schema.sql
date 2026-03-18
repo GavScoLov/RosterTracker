@@ -53,6 +53,7 @@ alter table company_data enable row level security;
 
 -- Profiles RLS
 create policy "Authenticated users can view profiles" on profiles for select to authenticated using (true);
+create policy "Users can insert own profile" on profiles for insert to authenticated with check (auth.uid() = id);
 create policy "Users can update own profile" on profiles for update to authenticated using (auth.uid() = id);
 create policy "Admins can update any profile" on profiles for update to authenticated
   using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));

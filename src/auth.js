@@ -19,7 +19,17 @@ async function _getProfile() {
   if (_cachedProfile !== undefined) return _cachedProfile;
   const user = await _getUser();
   if (!user) { _cachedProfile = null; return null; }
-  const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+  const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+  if (error && error.code === 'PGRST116') {
+    // No profile row exists — auto-create one
+    const { data: newProfile } = await supabase.from('profiles').insert({
+      id: user.id,
+      email: user.email,
+      username: user.user_metadata?.username || user.email
+    }).select().single();
+    _cachedProfile = newProfile || null;
+    return _cachedProfile;
+  }
   _cachedProfile = data || null;
   return _cachedProfile;
 }
