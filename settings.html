@@ -127,13 +127,6 @@
 <body>
     <div class="app-layout">
         <div class="main-content">
-            <div class="page-header">
-                <div class="page-header-left">
-                    <h1 class="page-title">Settings</h1>
-                    <p class="page-subtitle">Manage companies, users, assignments, and roles</p>
-                </div>
-            </div>
-
             <div id="status-msg" class="status-msg"></div>
 
             <div class="settings-tabs">
@@ -241,7 +234,7 @@
         // ── Auth guard ──
         const currentUser = await checkAuth();
         await renderSidebar();
-        renderNavbar();
+        renderNavbar({ title: 'Settings', subtitle: 'Manage companies, users, and assignments' });
         initInactivityTimer();
 
         const adminCheck = await isAdmin();
@@ -257,7 +250,6 @@
 
         const SITE_PAGES = [
             { slug: 'dashboard', label: 'Dashboard' },
-            { slug: 'company-input', label: 'Data Entry' },
         ];
 
         // ── Helpers ──

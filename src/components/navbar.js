@@ -1,7 +1,8 @@
 import { logout, getProfile } from '../auth.js';
 import { toggleSidebar } from './sidebar.js';
 
-export function renderNavbar() {
+export function renderNavbar({ title = 'RosterTracker', subtitle = '' } = {}) {
+  const subtitleHTML = subtitle ? `<span class="topbar-subtitle">${subtitle}</span>` : '';
   const nav = document.createElement('div');
   nav.innerHTML = `
     <header class="topbar">
@@ -9,7 +10,10 @@ export function renderNavbar() {
         <button class="topbar-hamburger" id="topbar-hamburger" aria-label="Toggle menu">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
         </button>
-        <span class="topbar-title">RosterTracker</span>
+        <div class="topbar-title-group">
+          <span class="topbar-title">${title}</span>
+          ${subtitleHTML}
+        </div>
       </div>
       <div class="topbar-spacer"></div>
       <div class="topbar-right">

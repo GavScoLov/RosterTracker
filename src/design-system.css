@@ -61,7 +61,9 @@ a:hover { text-decoration: underline; }
   z-index: 100;
 }
 .topbar-left { display: flex; align-items: center; gap: 12px; }
-.topbar-title { font-size: 1rem; font-weight: 600; color: var(--text-primary); }
+.topbar-title-group { display: flex; flex-direction: column; }
+.topbar-title { font-size: 1rem; font-weight: 600; color: var(--text-primary); line-height: 1.3; }
+.topbar-subtitle { font-size: 0.75rem; color: var(--text-secondary); font-weight: 400; line-height: 1.3; }
 .topbar-spacer { flex-grow: 1; }
 .topbar-right { display: flex; align-items: center; gap: 8px; }
 .topbar-hamburger {
