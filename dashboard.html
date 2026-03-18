@@ -474,14 +474,10 @@
             Chart.defaults.animation = false;
         }
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            const companyData = await fetchCompanyTotals();
-            const weeklyData = await fetchWeeklyData();
+        const companyData = await fetchCompanyTotals();
+        const weeklyData = await fetchWeeklyData();
 
-            if (!companyData) {
-                console.error("No company data was loaded.");
-                return;
-            }
+        if (companyData) {
 
             // Populate summary stat cards
             document.getElementById('stat-open').textContent = companyData.TotalOpenOrder.toLocaleString();
@@ -719,7 +715,9 @@
             createRatioPieChart('interview-scheduled', companyData.TotalInterviewed, companyData.TotalScheduled, 'Interviewed', 'Scheduled', 'interview-scheduled', 'interview-scheduled-legend');
             createRatioPieChart('accepted-interview', companyData.TotalAccepted, companyData.TotalInterviewed, 'Accepted', 'Interviewed', 'accepted-interview', 'accepted-interview-legend');
             createMultiSlicePieChart('bonus-distribution-chart', [companyData.TotalROM || 0, companyData.TotalCAR || 0, companyData.TotalAUS || 0], ['ROM', 'CAR', 'AUS']);
-        });
+        } else {
+            console.error("No company data was loaded.");
+        }
     </script>
 </body>
 </html>
