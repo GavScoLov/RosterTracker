@@ -9,7 +9,7 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         dashboard: resolve(__dirname, 'dashboard.html'),
         companyInput: resolve(__dirname, 'company-input.html'),
-        admin: resolve(__dirname, 'admin.html'),
+        settings: resolve(__dirname, 'settings.html'),
       },
     },
   },

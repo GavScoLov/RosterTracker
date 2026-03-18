@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RosterTracker - Settings</title>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/9352/9352254.png">
+    <link rel="stylesheet" href="./src/design-system.css">
+    <style>
+        /* Tabs */
+        .settings-tabs {
+            display: flex; gap: 0; border-bottom: 2px solid var(--border-color);
+            margin-bottom: 24px; overflow-x: auto;
+        }
+        .settings-tab {
+            padding: 12px 20px; font-size: 0.875rem; font-weight: 600;
+            color: var(--text-secondary); cursor: pointer; border: none;
+            background: none; font-family: var(--font); white-space: nowrap;
+            border-bottom: 2px solid transparent; margin-bottom: -2px;
+            transition: all 0.15s;
+        }
+        .settings-tab:hover { color: var(--text-primary); }
+        .settings-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* Tables */
+        .settings-table { width: 100%; border-collapse: collapse; }
+        .settings-table th, .settings-table td {
+            padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border-color);
+        }
+        .settings-table th {
+            font-weight: 600; color: var(--text-secondary); font-size: 0.75rem;
+            text-transform: uppercase; letter-spacing: 0.05em; background: #F8F9FA;
+        }
+        .settings-table tr:hover td { background: #FAFAFA; }
+
+        /* Inline forms */
+        .inline-form {
+            display: flex; gap: 12px; align-items: flex-end; margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .inline-form .form-group { margin-bottom: 0; flex: 1; min-width: 180px; }
+
+        /* User info */
+        .user-avatar {
+            width: 32px; height: 32px; border-radius: 50%; background: var(--primary);
+            color: white; display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 600; font-size: 0.8rem; flex-shrink: 0;
+        }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .user-email { color: var(--text-secondary); font-size: 0.8rem; }
+
+        /* Role select */
+        .role-select {
+            padding: 6px 10px; border-radius: var(--radius); border: 1px solid var(--border-color);
+            background: #fff; font-size: 0.875rem; cursor: pointer; font-family: var(--font);
+        }
+
+        /* Page toggles */
+        .page-toggles { display: flex; flex-wrap: wrap; gap: 6px; }
+        .page-toggle {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 4px 10px; border-radius: 99px; font-size: 0.75rem;
+            border: 1px solid var(--border-color); background: #fff;
+            cursor: pointer; transition: all 0.15s; user-select: none;
+        }
+        .page-toggle.active {
+            background: rgba(var(--primary-rgb), 0.1);
+            border-color: var(--primary); color: var(--primary);
+        }
+        .page-toggle input { display: none; }
+
+        /* Company toggles for assignment */
+        .company-toggles { display: flex; flex-wrap: wrap; gap: 6px; }
+        .company-toggle {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 6px 14px; border-radius: 99px; font-size: 0.8rem;
+            border: 1px solid var(--border-color); background: #fff;
+            cursor: pointer; transition: all 0.15s; user-select: none; font-weight: 500;
+        }
+        .company-toggle.active {
+            background: rgba(var(--primary-rgb), 0.1);
+            border-color: var(--primary); color: var(--primary);
+        }
+        .company-toggle input { display: none; }
+
+        /* Status messages */
+        .status-msg {
+            padding: 10px 16px; border-radius: var(--radius); margin-bottom: 16px;
+            font-size: 0.875rem; display: none; font-weight: 500;
+        }
+        .status-msg.success { display: block; background: #DCFCE7; color: #16A34A; }
+        .status-msg.error { display: block; background: #FEE2E2; color: #DC2626; }
+
+        /* Actions */
+        .row-actions { display: flex; gap: 8px; align-items: center; }
+        .delete-btn {
+            padding: 6px 10px; border-radius: var(--radius); border: 1px solid #FCA5A5;
+            background: #FEF2F2; color: #DC2626; font-size: 0.75rem; cursor: pointer;
+            transition: all 0.15s; font-family: var(--font); font-weight: 500;
+        }
+        .delete-btn:hover { background: #FEE2E2; }
+        .save-btn {
+            padding: 6px 14px; border-radius: var(--radius); border: none;
+            background: var(--primary); color: white; font-size: 0.8rem;
+            cursor: pointer; transition: background 0.15s; font-family: var(--font); font-weight: 500;
+        }
+        .save-btn:hover { background: var(--primary-dark); }
+        .save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .empty-state { text-align: center; padding: 48px 24px; color: var(--text-secondary); }
+        .loading { text-align: center; padding: 48px 24px; color: var(--text-secondary); }
+
+        .section-description {
+            color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .settings-table { display: block; overflow-x: auto; }
+            .inline-form { flex-direction: column; }
+            .inline-form .form-group { min-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <div class="main-content">
+            <div class="page-header">
+                <div class="page-header-left">
+                    <h1 class="page-title">Settings</h1>
+                    <p class="page-subtitle">Manage companies, users, assignments, and roles</p>
+                </div>
+            </div>
+
+            <div id="status-msg" class="status-msg"></div>
+
+            <div class="settings-tabs">
+                <button class="settings-tab active" data-tab="companies">Companies</button>
+                <button class="settings-tab" data-tab="users">Users</button>
+                <button class="settings-tab" data-tab="assignments">Company Assignments</button>
+            </div>
+
+            <!-- Companies Tab -->
+            <div class="tab-panel active" id="tab-companies">
+                <p class="section-description">Create and manage companies. Users can be assigned to companies to control data access.</p>
+                <div class="inline-form" id="company-form">
+                    <div class="form-group">
+                        <label class="form-label">Company Name</label>
+                        <input type="text" class="form-input" id="company-name" placeholder="e.g. Acme Corp">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Slug</label>
+                        <input type="text" class="form-input" id="company-slug" placeholder="e.g. acme-corp">
+                    </div>
+                    <button class="btn btn-primary" id="add-company-btn">Add Company</button>
+                </div>
+                <div class="card" style="padding: 0; overflow: hidden;">
+                    <div id="companies-loading" class="loading">Loading companies...</div>
+                    <div id="companies-empty" class="empty-state" style="display:none;">No companies yet. Add one above.</div>
+                    <table class="settings-table" id="companies-table" style="display:none;">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Slug</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="companies-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div class="tab-panel" id="tab-users">
+                <p class="section-description">Invite new users and manage roles and page access for existing users.</p>
+                <div class="inline-form" id="user-form">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" id="invite-email" placeholder="user@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Temporary Password</label>
+                        <input type="text" class="form-input" id="invite-password" placeholder="min 6 characters">
+                    </div>
+                    <button class="btn btn-primary" id="invite-user-btn">Invite User</button>
+                </div>
+                <div class="card" style="padding: 0; overflow: hidden;">
+                    <div id="users-loading" class="loading">Loading users...</div>
+                    <div id="users-empty" class="empty-state" style="display:none;">No users found.</div>
+                    <table class="settings-table" id="users-table" style="display:none;">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Role</th>
+                                <th>Page Access</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Assignments Tab -->
+            <div class="tab-panel" id="tab-assignments">
+                <p class="section-description">Assign users to companies. Each user can belong to multiple companies.</p>
+                <div class="card" style="padding: 0; overflow: hidden;">
+                    <div id="assignments-loading" class="loading">Loading...</div>
+                    <div id="assignments-empty" class="empty-state" style="display:none;">No users or companies found.</div>
+                    <table class="settings-table" id="assignments-table" style="display:none;">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Assigned Companies</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="assignments-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script type="module">
+        import {
+            checkAuth, isAdmin, getUser,
+            getAllUsers, updateUserRole, updateUserPages, deleteUserProfile,
+            getAllCompanies, createCompany, deleteCompany,
+            getAllUserCompanies, setUserCompanies,
+            createUserWithEmail
+        } from './src/auth.js';
+        import { initInactivityTimer } from './src/main.js';
+        import { renderNavbar } from './src/components/navbar.js';
+        import { renderSidebar } from './src/components/sidebar.js';
+
+        // ── Auth guard ──
+        const currentUser = await checkAuth();
+        await renderSidebar();
+        renderNavbar();
+        initInactivityTimer();
+
+        const adminCheck = await isAdmin();
+        if (!adminCheck) {
+            window.location.href = './dashboard.html';
+            throw new Error('Not admin');
+        }
+
+        // ── State ──
+        let users = [];
+        let companies = [];
+        let userCompanies = []; // { user_id, company_id }
+
+        const SITE_PAGES = [
+            { slug: 'dashboard', label: 'Dashboard' },
+            { slug: 'company-input', label: 'Data Entry' },
+        ];
+
+        // ── Helpers ──
+        function showStatus(msg, type) {
+            const el = document.getElementById('status-msg');
+            el.textContent = msg;
+            el.className = 'status-msg ' + type;
+            setTimeout(() => { el.className = 'status-msg'; }, 4000);
+        }
+
+        // ── Tab switching ──
+        document.querySelectorAll('.settings-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // ══════════════════════════════════════
+        // ── COMPANIES TAB ──
+        // ══════════════════════════════════════
+        function renderCompanies() {
+            const loading = document.getElementById('companies-loading');
+            const empty = document.getElementById('companies-empty');
+            const table = document.getElementById('companies-table');
+            const tbody = document.getElementById('companies-tbody');
+            loading.style.display = 'none';
+
+            if (!companies.length) {
+                empty.style.display = 'block';
+                table.style.display = 'none';
+                return;
+            }
+            empty.style.display = 'none';
+            table.style.display = 'table';
+
+            tbody.innerHTML = companies.map(c => `
+                <tr>
+                    <td><strong>${c.name}</strong></td>
+                    <td><code style="background:#F3F4F6;padding:2px 8px;border-radius:4px;font-size:0.8rem;">${c.slug}</code></td>
+                    <td style="color:var(--text-secondary);font-size:0.8rem;">${new Date(c.created_at).toLocaleDateString()}</td>
+                    <td><button class="delete-btn" data-company-id="${c.id}">Delete</button></td>
+                </tr>
+            `).join('');
+
+            tbody.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const id = parseInt(btn.dataset.companyId);
+                    const company = companies.find(c => c.id === id);
+                    if (!confirm(`Delete "${company?.name}"? This will also remove all user assignments for this company.`)) return;
+                    try {
+                        await deleteCompany(id);
+                        companies = companies.filter(c => c.id !== id);
+                        userCompanies = userCompanies.filter(uc => uc.company_id !== id);
+                        renderCompanies();
+                        renderAssignments();
+                        showStatus('Company deleted.', 'success');
+                    } catch (err) {
+                        showStatus('Failed to delete company: ' + err.message, 'error');
+                    }
+                });
+            });
+        }
+
+        // Auto-generate slug from name
+        document.getElementById('company-name').addEventListener('input', (e) => {
+            const slugField = document.getElementById('company-slug');
+            if (!slugField.dataset.manual) {
+                slugField.value = e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+            }
+        });
+        document.getElementById('company-slug').addEventListener('input', function () {
+            this.dataset.manual = 'true';
+        });
+
+        document.getElementById('add-company-btn').addEventListener('click', async () => {
+            const nameInput = document.getElementById('company-name');
+            const slugInput = document.getElementById('company-slug');
+            const name = nameInput.value.trim();
+            const slug = slugInput.value.trim();
+            if (!name || !slug) { showStatus('Please enter both name and slug.', 'error'); return; }
+
+            try {
+                const newCompany = await createCompany(name, slug);
+                companies.push(newCompany);
+                renderCompanies();
+                renderAssignments();
+                nameInput.value = '';
+                slugInput.value = '';
+                slugInput.dataset.manual = '';
+                showStatus(`Company "${name}" created.`, 'success');
+            } catch (err) {
+                showStatus('Failed to create company: ' + err.message, 'error');
+            }
+        });
+
+        // ══════════════════════════════════════
+        // ── USERS TAB ──
+        // ══════════════════════════════════════
+        function renderUsers() {
+            const loading = document.getElementById('users-loading');
+            const empty = document.getElementById('users-empty');
+            const table = document.getElementById('users-table');
+            const tbody = document.getElementById('users-tbody');
+            loading.style.display = 'none';
+
+            if (!users.length) {
+                empty.style.display = 'block';
+                table.style.display = 'none';
+                return;
+            }
+            empty.style.display = 'none';
+            table.style.display = 'table';
+
+            tbody.innerHTML = users.map(user => {
+                const name = user.username || user.email || 'Unknown';
+                const initial = name.charAt(0).toUpperCase();
+                const allowedPages = user.allowed_pages || [];
+                const isCurrentUser = user.id === currentUser.id;
+
+                return `
+                <tr data-user-id="${user.id}">
+                    <td>
+                        <div class="user-info">
+                            <div class="user-avatar">${initial}</div>
+                            <div>
+                                <div>${name}${isCurrentUser ? ' <span style="color:var(--text-secondary);font-size:0.75rem;">(you)</span>' : ''}</div>
+                                <div class="user-email">${user.email || ''}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <select class="role-select" data-user-id="${user.id}" ${isCurrentUser ? 'disabled title="Cannot change your own role"' : ''}>
+                            <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                            <option value="editor" ${user.role === 'editor' ? 'selected' : ''}>Editor</option>
+                            <option value="viewer" ${user.role === 'viewer' ? 'selected' : ''}>Viewer</option>
+                        </select>
+                    </td>
+                    <td>
+                        <div class="page-toggles" data-user-id="${user.id}">
+                            ${user.role === 'admin'
+                                ? '<span style="color:var(--text-secondary);font-size:0.8rem;">All pages (admin)</span>'
+                                : SITE_PAGES.map(p => `
+                                    <label class="page-toggle ${allowedPages.includes(p.slug) ? 'active' : ''}">
+                                        <input type="checkbox" value="${p.slug}" ${allowedPages.includes(p.slug) ? 'checked' : ''}>
+                                        ${p.label}
+                                    </label>
+                                `).join('')}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="row-actions">
+                            <button class="save-btn" data-user-id="${user.id}" ${isCurrentUser ? 'disabled' : ''}>Save</button>
+                            ${!isCurrentUser ? `<button class="delete-btn" data-user-id="${user.id}">Remove</button>` : ''}
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            // Toggle page chips
+            tbody.querySelectorAll('.page-toggle input').forEach(input => {
+                input.addEventListener('change', () => {
+                    input.parentElement.classList.toggle('active', input.checked);
+                });
+            });
+
+            // Role change → update page toggles visibility
+            tbody.querySelectorAll('.role-select').forEach(select => {
+                select.addEventListener('change', () => {
+                    const userId = select.dataset.userId;
+                    const togglesContainer = tbody.querySelector(`.page-toggles[data-user-id="${userId}"]`);
+                    if (select.value === 'admin') {
+                        togglesContainer.innerHTML = '<span style="color:var(--text-secondary);font-size:0.8rem;">All pages (admin)</span>';
+                    } else {
+                        const user = users.find(u => u.id === userId);
+                        const allowedPages = user?.allowed_pages || [];
+                        togglesContainer.innerHTML = SITE_PAGES.map(p => `
+                            <label class="page-toggle ${allowedPages.includes(p.slug) ? 'active' : ''}">
+                                <input type="checkbox" value="${p.slug}" ${allowedPages.includes(p.slug) ? 'checked' : ''}>
+                                ${p.label}
+                            </label>
+                        `).join('');
+                        togglesContainer.querySelectorAll('.page-toggle input').forEach(input => {
+                            input.addEventListener('change', () => {
+                                input.parentElement.classList.toggle('active', input.checked);
+                            });
+                        });
+                    }
+                });
+            });
+
+            // Save button
+            tbody.querySelectorAll('.save-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const userId = btn.dataset.userId;
+                    btn.disabled = true;
+                    btn.textContent = 'Saving...';
+                    try {
+                        const row = btn.closest('tr');
+                        const role = row.querySelector('.role-select').value;
+                        await updateUserRole(userId, role);
+
+                        if (role !== 'admin') {
+                            const checkboxes = row.querySelectorAll('.page-toggle input');
+                            const pages = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+                            await updateUserPages(userId, pages);
+                        }
+
+                        showStatus('User updated successfully.', 'success');
+                        const user = users.find(u => u.id === userId);
+                        if (user) {
+                            user.role = role;
+                            if (role !== 'admin') {
+                                const checkboxes = row.querySelectorAll('.page-toggle input');
+                                user.allowed_pages = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+                            }
+                        }
+                    } catch (err) {
+                        showStatus('Failed to update user: ' + err.message, 'error');
+                    }
+                    btn.disabled = false;
+                    btn.textContent = 'Save';
+                });
+            });
+
+            // Delete button
+            tbody.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const userId = btn.dataset.userId;
+                    const user = users.find(u => u.id === userId);
+                    if (!confirm(`Remove ${user?.username || user?.email || 'this user'}? This removes their profile but not their auth account.`)) return;
+                    try {
+                        await deleteUserProfile(userId);
+                        showStatus('User profile removed.', 'success');
+                        users = users.filter(u => u.id !== userId);
+                        renderUsers();
+                        renderAssignments();
+                    } catch (err) {
+                        showStatus('Failed to remove user: ' + err.message, 'error');
+                    }
+                });
+            });
+        }
+
+        // Invite user
+        document.getElementById('invite-user-btn').addEventListener('click', async () => {
+            const emailInput = document.getElementById('invite-email');
+            const passInput = document.getElementById('invite-password');
+            const email = emailInput.value.trim();
+            const password = passInput.value.trim();
+
+            if (!email || !password) { showStatus('Please enter email and password.', 'error'); return; }
+            if (password.length < 6) { showStatus('Password must be at least 6 characters.', 'error'); return; }
+
+            const btn = document.getElementById('invite-user-btn');
+            btn.disabled = true;
+            btn.textContent = 'Inviting...';
+
+            try {
+                await createUserWithEmail(email, password);
+                showStatus(`Invitation sent to ${email}. They can sign in with the temporary password.`, 'success');
+                emailInput.value = '';
+                passInput.value = '';
+                // Refresh users list after a brief delay (profile may take a moment)
+                setTimeout(async () => {
+                    try {
+                        users = await getAllUsers();
+                        renderUsers();
+                        renderAssignments();
+                    } catch (e) { /* ignore refresh errors */ }
+                }, 2000);
+            } catch (err) {
+                showStatus('Failed to invite user: ' + err.message, 'error');
+            }
+            btn.disabled = false;
+            btn.textContent = 'Invite User';
+        });
+
+        // ══════════════════════════════════════
+        // ── ASSIGNMENTS TAB ──
+        // ══════════════════════════════════════
+        function renderAssignments() {
+            const loading = document.getElementById('assignments-loading');
+            const empty = document.getElementById('assignments-empty');
+            const table = document.getElementById('assignments-table');
+            const tbody = document.getElementById('assignments-tbody');
+            loading.style.display = 'none';
+
+            if (!users.length || !companies.length) {
+                empty.style.display = 'block';
+                empty.textContent = !companies.length
+                    ? 'No companies created yet. Add companies in the Companies tab first.'
+                    : 'No users found.';
+                table.style.display = 'none';
+                return;
+            }
+            empty.style.display = 'none';
+            table.style.display = 'table';
+
+            tbody.innerHTML = users.map(user => {
+                const name = user.username || user.email || 'Unknown';
+                const initial = name.charAt(0).toUpperCase();
+                const assignedIds = userCompanies
+                    .filter(uc => uc.user_id === user.id)
+                    .map(uc => uc.company_id);
+
+                return `
+                <tr data-user-id="${user.id}">
+                    <td>
+                        <div class="user-info">
+                            <div class="user-avatar">${initial}</div>
+                            <div>
+                                <div>${name}</div>
+                                <div class="user-email">${user.email || ''}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="company-toggles" data-user-id="${user.id}">
+                            ${companies.map(c => `
+                                <label class="company-toggle ${assignedIds.includes(c.id) ? 'active' : ''}">
+                                    <input type="checkbox" value="${c.id}" ${assignedIds.includes(c.id) ? 'checked' : ''}>
+                                    ${c.name}
+                                </label>
+                            `).join('')}
+                        </div>
+                    </td>
+                    <td>
+                        <button class="save-btn save-assignment-btn" data-user-id="${user.id}">Save</button>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            // Toggle company chips
+            tbody.querySelectorAll('.company-toggle input').forEach(input => {
+                input.addEventListener('change', () => {
+                    input.parentElement.classList.toggle('active', input.checked);
+                });
+            });
+
+            // Save assignments
+            tbody.querySelectorAll('.save-assignment-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const userId = btn.dataset.userId;
+                    btn.disabled = true;
+                    btn.textContent = 'Saving...';
+                    try {
+                        const row = btn.closest('tr');
+                        const checkboxes = row.querySelectorAll('.company-toggle input');
+                        const companyIds = Array.from(checkboxes)
+                            .filter(cb => cb.checked)
+                            .map(cb => parseInt(cb.value));
+
+                        await setUserCompanies(userId, companyIds);
+
+                        // Update local state
+                        userCompanies = userCompanies.filter(uc => uc.user_id !== userId);
+                        companyIds.forEach(cid => {
+                            userCompanies.push({ user_id: userId, company_id: cid });
+                        });
+
+                        showStatus('Company assignments updated.', 'success');
+                    } catch (err) {
+                        showStatus('Failed to update assignments: ' + err.message, 'error');
+                    }
+                    btn.disabled = false;
+                    btn.textContent = 'Save';
+                });
+            });
+        }
+
+        // ══════════════════════════════════════
+        // ── LOAD DATA ──
+        // ══════════════════════════════════════
+        // Load each independently so partial failures don't block everything
+        const results = await Promise.allSettled([
+            getAllUsers(),
+            getAllCompanies(),
+            getAllUserCompanies()
+        ]);
+
+        if (results[0].status === 'fulfilled') {
+            users = results[0].value;
+        } else {
+            document.getElementById('users-loading').textContent = 'Error loading users.';
+        }
+
+        if (results[1].status === 'fulfilled') {
+            companies = results[1].value;
+        } else {
+            document.getElementById('companies-loading').textContent = 'Companies table not found. Please run the SQL migration to create it.';
+        }
+
+        if (results[2].status === 'fulfilled') {
+            userCompanies = results[2].value;
+        } else {
+            // user_companies table may not exist yet — assignments tab will show gracefully
+            userCompanies = [];
+        }
+
+        renderCompanies();
+        renderUsers();
+        renderAssignments();
+    </script>
+</body>
+</html>
